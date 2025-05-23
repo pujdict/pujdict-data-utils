@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from pathlib import Path
 import yaml
+from pujcommon import BUILTIN_FUZZY_RULE_GROUPS
 from puj.entries_pb2 import *
 
 
@@ -51,6 +52,16 @@ def main():
     with open('dist/entries.pb', 'rb') as f:
         entries = Entries()
         entries.ParseFromString(f.read())
+    finals = set()
+    for entry in entries.entries:
+        finals.add(entry.pron.final)
+        for rule in BUILTIN_FUZZY_RULE_GROUPS:
+            p = Pronunciation()
+            p.CopyFrom(entry.pron)
+            p = rule.fuzzy_result(p)
+            finals.add(p.final)
+    for final in sorted(finals):
+        print(final)
 
 
 if __name__ == '__main__':
